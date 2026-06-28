@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "morescoreboards",
+  "version": "${version}",
+  "name": "MoreScoreboards",
+  "description": "本MC模组增加了更多计分板准则，用于在定制服务器组合不同的计分板，提供个性化排名等。",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/morescoreboards/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.github.isbenben.morescoreboards.MoreScoreboards"
+    ]
+  },
+  "mixins": [
+    "morescoreboards.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.3",
+    "java": "21",
+    "minecraft": "1.21.8"
+  }
+}
