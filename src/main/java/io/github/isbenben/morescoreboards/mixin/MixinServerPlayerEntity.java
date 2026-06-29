@@ -1,11 +1,12 @@
 package io.github.isbenben.morescoreboards.mixin;
 
 import io.github.isbenben.morescoreboards.criterion.StatByTag;
+import io.github.isbenben.morescoreboards.criterion.StatReversed;
+import io.github.isbenben.morescoreboards.util.RegistryEntryScoreHolder;
+import io.github.isbenben.morescoreboards.util.ScoreUtils;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.scoreboard.ScoreAccess;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardCriterion;
-import net.minecraft.scoreboard.ScoreboardObjective;
+import net.minecraft.scoreboard.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stat;
 import net.minecraft.stat.StatType;
@@ -15,42 +16,20 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static io.github.isbenben.morescoreboards.MoreScoreboards.MODID;
+
 @Mixin(ServerPlayerEntity.class)
 public abstract class MixinServerPlayerEntity {
     @Unique
-    private int tickCount = 0;
-
-    @Unique
-    private static final int INTERVAL_TICKS = 100;
-
-    @Unique
-    private static <T> void updateAllScores(ServerPlayerEntity player) {
-        Scoreboard scoreboard = player.getScoreboard();
-        for (ScoreboardObjective objective : scoreboard.getObjectives()) {
-            ScoreboardCriterion criterion = objective.getCriterion();
-            if (criterion instanceof StatByTag<?> statByTag) {
-                //noinspection unchecked
-                StatType<T> statType = (StatType<T>) statByTag.getStatType();
-                int sumScore = 0;
-                for (Stat<T> stat : statType) {
-                    RegistryEntry<T> entry = statType.getRegistry().getEntry(stat.getValue());
-                    if (statByTag.contains(entry)) {
-                        sumScore += player.getStatHandler().getStat(stat);
-                    }
-                }
-                ScoreAccess score = scoreboard.getOrCreateScore(player, objective, true);
-                score.setScore(sumScore);
-            }
-        }
-    }
+    private int morescoreboards$tickCount = 0;
 
     @Inject(at = @At("TAIL"), method = "tick")
     private void tick(CallbackInfo ci) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-        if (this.tickCount % INTERVAL_TICKS == 0) {
-            updateAllScores(player);
+        if (this.morescoreboards$tickCount % ScoreUtils.UPDATE_INTERVAL == 0) {
+            ScoreUtils.updatePlayerScores(player);
         }
-        ++tickCount;
+        ++morescoreboards$tickCount;
     }
 
     @Inject(at = @At("TAIL"), method = "increaseStat")
@@ -64,6 +43,17 @@ public abstract class MixinServerPlayerEntity {
                 RegistryEntry<T> entry = statType.getRegistry().getEntry(stat.getValue());
                 if (statByTag.contains(entry)) {
                     ScoreAccess score = scoreboard.getOrCreateScore(player, objective, true);
+                    score.incrementScore(amount);
+                }
+            } else if (criterion instanceof StatReversed<?> statReversed && statReversed.getStatType() == statType) {
+                Registry<T> registry = statType.getRegistry();
+                RegistryEntry<T> entry = registry.getEntry(stat.getValue());
+                if (statReversed.contains(entry)) {
+                    RegistryEntryScoreHolder scoreHolder = RegistryEntryScoreHolder.fromRegistryEntry(registry, entry);
+                    ScoreAccess score = scoreboard.getOrCreateScore(scoreHolder, objective, true);
+                    Team team = scoreboard.addTeam(MODID + scoreHolder.translationKey());
+                    team.setPrefix(scoreHolder.getDisplayName());
+                    scoreboard.addScoreHolderToTeam(scoreHolder.getNameForScoreboard(), team);
                     score.incrementScore(amount);
                 }
             }

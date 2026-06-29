@@ -2,6 +2,7 @@ package io.github.isbenben.morescoreboards.mixin;
 
 import com.google.common.collect.Lists;
 import io.github.isbenben.morescoreboards.criterion.StatByTag;
+import io.github.isbenben.morescoreboards.criterion.StatReversed;
 import net.minecraft.command.argument.ScoreboardCriterionArgumentType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -23,15 +24,17 @@ public abstract class MixinScoreboardCriterionArgumentType {
             index = 0
     )
     private Iterable<String> onSuggestMatchingArg(Iterable<String> original) {
-        List<String> newList = Lists.newArrayList(original);
+        List<String> newSuggestions = Lists.newArrayList(original);
 
         for (StatType<?> statType : Registries.STAT_TYPE) {
             Identifier statId = Registries.STAT_TYPE.getId(statType);
             if (statId != null) {
-                String suggestion = statId.toString().replace(':', '.')
+                newSuggestions.add(statId.toString().replace(':', '.')
                         + StatByTag.BY_TAG_SYMBOL + ":"
-                        + "morescoreboards.total";
-                newList.add(suggestion);
+                        + "morescoreboards.total");
+                newSuggestions.add(statId.toString().replace(':', '.')
+                        + StatReversed.REVERSED_SYMBOL + ":"
+                        + "morescoreboards.total");
             }
         }
 
@@ -43,8 +46,14 @@ public abstract class MixinScoreboardCriterionArgumentType {
                     .map(tag -> statId.toString().replace(':', '.')
                             + StatByTag.BY_TAG_SYMBOL + ":"
                             + tag.getTag().id().toString().replace(':', '.')).
-                    forEach(newList::add);
+                    forEach(newSuggestions::add);
+            registry.getTags()
+                    .filter(tag -> statId != null)
+                    .map(tag -> statId.toString().replace(':', '.')
+                            + StatReversed.REVERSED_SYMBOL + ":"
+                            + tag.getTag().id().toString().replace(':', '.')).
+                    forEach(newSuggestions::add);
         }
-        return newList;
+        return newSuggestions;
     }
 }

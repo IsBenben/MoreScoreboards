@@ -14,13 +14,13 @@ import java.util.Optional;
 
 import static io.github.isbenben.morescoreboards.MoreScoreboards.MODID;
 
-public class StatByTag<T> extends ScoreboardCriterion {
-    public static final String BY_TAG_SYMBOL = "_by_tag";
+public class StatReversed<T> extends ScoreboardCriterion {
+    public static final String REVERSED_SYMBOL = "_reversed";
 
     private final StatType<T> statType;
     private final TagKey<T> tagKey;
 
-    public StatByTag(StatType<T> statType, TagKey<T> tagKey) {
+    public StatReversed(StatType<T> statType, TagKey<T> tagKey) {
         super(getName(statType, tagKey), true, RenderType.INTEGER);
         this.statType = statType;
         this.tagKey = tagKey;
@@ -29,7 +29,7 @@ public class StatByTag<T> extends ScoreboardCriterion {
     public static <T> Optional<ScoreboardCriterion> create(StatType<T> statType, @Nullable Identifier id) {
         Registry<T> registry = statType.getRegistry();
         TagKey<T> tagKey = TagKey.of(registry.getKey(), id);
-        return Optional.of(new StatByTag<>(statType, tagKey));
+        return Optional.of(new StatReversed<>(statType, tagKey));
     }
 
     public StatType<T> getStatType() {
@@ -53,9 +53,9 @@ public class StatByTag<T> extends ScoreboardCriterion {
 
     public static <T> String getName(StatType<T> type, TagKey<T> tagKey) {
 //        if (type == Register.CONSUMED) {
-//            return getName(Identifier.of(MODID, "consumed")) + BY_TAG_SYMBOL + ":" + getName(tagKey.id());
+//            return getName(Identifier.of(MODID, "consumed")) + REVERSED_SYMBOL + ":" + getName(tagKey.id());
 //        }
-        return getName(Registries.STAT_TYPE.getId(type)) + BY_TAG_SYMBOL + ":" + getName(tagKey.id());
+        return getName(Registries.STAT_TYPE.getId(type)) + REVERSED_SYMBOL + ":" + getName(tagKey.id());
     }
 
     private static String getName(Identifier id) {
@@ -64,9 +64,9 @@ public class StatByTag<T> extends ScoreboardCriterion {
 
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof StatByTag<?> statByTag)) return false;
-        return Objects.equals(getStatType(), statByTag.getStatType()) && Objects.equals(getTagKey(),
-                statByTag.getTagKey());
+        if (!(object instanceof StatReversed<?> statReversed)) return false;
+        return Objects.equals(getStatType(), statReversed.getStatType()) && Objects.equals(getTagKey(),
+                statReversed.getTagKey());
     }
 
     @Override
@@ -76,7 +76,7 @@ public class StatByTag<T> extends ScoreboardCriterion {
 
     @Override
     public String toString() {
-        return "StatByTag{" +
+        return "StatReversed{" +
                 "statType=" + statType +
                 ", tagKey=" + tagKey +
                 '}';

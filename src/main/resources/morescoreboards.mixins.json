@@ -4,9 +4,11 @@
   "package": "io.github.isbenben.morescoreboards.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "MixinConsumableComponent",
     "MixinScoreboardCriterion",
     "MixinScoreboardCriterionArgumentType",
-    "MixinServerPlayerEntity"
+    "MixinServerPlayerEntity",
+    "MixinServerWorld"
   ],
   "client": [
   ],
